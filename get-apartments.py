@@ -5,7 +5,7 @@ import os
 import requests
 from bs4 import BeautifulSoup
 
-BASE_URL = 'https://DEVELOPER_NAME/inwestycje-mieszkaniowe/NAME/mieszkanie'
+BASE_URL = 'https://www.DEVELOPER/inwestycje-mieszkaniowe/bienkowice/mieszkanie'
 
 BUILDINGS = ['a1', 'a2', 'a3']
 FLORS = [1, 2, 3, 4]
@@ -21,6 +21,7 @@ free = []
 urls = []
 
 dump_file = '/tmp/dump-file'
+apartment_size_file = '/tmp/apartment_size'
 
 def read_file(dump_file):
     if (dump_file and os.path.isfile(dump_file)
@@ -28,8 +29,8 @@ def read_file(dump_file):
         with open(dump_file, 'r') as f:
             return f.readlines()
 
-def write_file(urls):
-    with open(dump_file, 'w') as f:
+def write_file(urls, f):
+    with open(f, 'w') as f:
         for url in urls:
             f.write("%s\n" % url)
 
@@ -89,7 +90,9 @@ def parse_site(url):
             if '+' in span_class.text:
                 continue
 
-#            apartment_size[name] = span_class.text
+            name = item.find('span', attrs={'class': 'th-fake'}
+                             ).text.split()[1]
+            apartment_size[name] = span_class.text
             print("Apartment %s has size: %s" %
                   (url, span_class.text))
 
@@ -113,7 +116,9 @@ for url in urls:
     location_urls.append(parse_site(url))
 
 if write_to_file:
-    write_file(urls)
+    write_file(urls, dump_file)
+
+write_file(apartment_size, apartment_size_file)
 
 if len(apartment_size) > DECLARED_APARTMENT_COUNT:
     print("There are more apartments that it should be!")
